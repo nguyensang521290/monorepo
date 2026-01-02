@@ -1,0 +1,8 @@
+plugins {
+    id 'com.gnas.starter.spring-boot-microservice'
+}
+
+dependencies {
+    implementation('org.springframework.boot:spring-boot-starter-validation')
+    implementation project(':shared-lib')
+}

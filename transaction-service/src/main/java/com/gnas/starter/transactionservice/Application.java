@@ -1,4 +1,4 @@
-package com.gnas.starter.orderservice;
+package com.gnas.starter.transactionservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

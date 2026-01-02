@@ -15,7 +15,11 @@ jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      order-service: ${{ steps.filter.outputs.order-service }}
+      account-service: ${{ steps.filter.outputs.account-service }}
+      transaction-service: ${{ steps.filter.outputs.transaction-service }}
+      loan-service: ${{ steps.filter.outputs.loan-service }}
+      notification-service: ${{ steps.filter.outputs.notification-service }}
+      audit-service: ${{ steps.filter.outputs.audit-service }}
       shared-lib: ${{ steps.filter.outputs.shared-lib }}
       build-logic: ${{ steps.filter.outputs.build-logic }}
       root: ${{ steps.filter.outputs.root }}
@@ -30,8 +34,36 @@ jobs:
         uses: dorny/paths-filter@v2
         with:
           filters: |
-            order-service:
-              - 'order-service/**'
+            account-service:
+              - 'account-service/**'
+              - 'shared-lib/**'
+              - 'build-logic/**'
+              - 'build.gradle'
+              - 'settings.gradle'
+              - 'gradle.properties'
+            transaction-service:
+              - 'transaction-service/**'
+              - 'shared-lib/**'
+              - 'build-logic/**'
+              - 'build.gradle'
+              - 'settings.gradle'
+              - 'gradle.properties'
+            loan-service:
+              - 'loan-service/**'
+              - 'shared-lib/**'
+              - 'build-logic/**'
+              - 'build.gradle'
+              - 'settings.gradle'
+              - 'gradle.properties'
+            notification-service:
+              - 'notification-service/**'
+              - 'shared-lib/**'
+              - 'build-logic/**'
+              - 'build.gradle'
+              - 'settings.gradle'
+              - 'gradle.properties'
+            audit-service:
+              - 'audit-service/**'
               - 'shared-lib/**'
               - 'build-logic/**'
               - 'build.gradle'
@@ -52,13 +84,45 @@ jobs:
               - 'gradle.properties'
               - '.github/workflows/**'
 
-  build-order-service:
+  build-account-service:
     needs: detect-changes
-    if: needs.detect-changes.outputs.order-service == 'true'
+    if: needs.detect-changes.outputs.account-service == 'true'
     uses: ./.github/workflows/build-microservice.yml
     with:
-      microservice-name: order-service
-      microservice-path: order-service
+      microservice-name: account-service
+      microservice-path: account-service
+
+  build-transaction-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.transaction-service == 'true'
+    uses: ./.github/workflows/build-microservice.yml
+    with:
+      microservice-name: transaction-service
+      microservice-path: transaction-service
+
+  build-loan-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.loan-service == 'true'
+    uses: ./.github/workflows/build-microservice.yml
+    with:
+      microservice-name: loan-service
+      microservice-path: loan-service
+
+  build-notification-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.notification-service == 'true'
+    uses: ./.github/workflows/build-microservice.yml
+    with:
+      microservice-name: notification-service
+      microservice-path: notification-service
+
+  build-audit-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.audit-service == 'true'
+    uses: ./.github/workflows/build-microservice.yml
+    with:
+      microservice-name: audit-service
+      microservice-path: audit-service
 
   build-shared-lib:
     needs: detect-changes

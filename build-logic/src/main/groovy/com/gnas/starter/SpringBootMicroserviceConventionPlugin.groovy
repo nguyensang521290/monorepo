@@ -6,13 +6,15 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.tasks.compile.JavaCompile
 
 class SpringBootMicroserviceConventionPlugin implements Plugin<Project> {
+    private static final String SPRING_BOOT_DEPENDENCIES_VERSION = '3.3.4'
+    private static final String LOMBOK_VERSION = '1.18.30'
 
     @Override
     void apply(Project project) {
         // Apply common plugins
         project.pluginManager.apply 'java'
         project.pluginManager.apply 'org.springframework.boot'
-        project.pluginManager.apply 'io.spring.dependency-management'
+        //project.pluginManager.apply 'io.spring.dependency-management'
 
         // Common coordinates
         project.group = 'com.gnas.starter'
@@ -33,14 +35,16 @@ class SpringBootMicroserviceConventionPlugin implements Plugin<Project> {
 
         // Common dependencies
         project.dependencies {
+            implementation platform("org.springframework.boot:spring-boot-dependencies:${SPRING_BOOT_DEPENDENCIES_VERSION}")
+
             implementation 'org.springframework.boot:spring-boot-starter-web'
             implementation 'org.springframework.boot:spring-boot-starter-actuator'
             implementation 'org.springframework.boot:spring-boot-starter-aop'
             implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
 
-            compileOnly 'org.projectlombok:lombok'
-            annotationProcessor 'org.projectlombok:lombok'
-            developmentOnly 'org.springframework.boot:spring-boot-devtools'
+            compileOnly "org.projectlombok:lombok:${LOMBOK_VERSION}"
+            annotationProcessor "org.projectlombok:lombok:${LOMBOK_VERSION}"
+//            developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
             testImplementation 'org.springframework.boot:spring-boot-starter-test'
             testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

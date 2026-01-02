@@ -1,6 +1,14 @@
 rootProject.name = 'gnas-starter'
 
+// Build plugins
 includeBuild('build-logic')
 
+// Common services
 include('shared-lib')
-include('order-service')
+
+// Micro services
+include('account-service')
+include('transaction-service')
+include('loan-service')
+include('notification-service')
+include('audit-service')

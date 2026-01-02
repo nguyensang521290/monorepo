@@ -11,7 +11,7 @@ class SpringBootSharedLibraryConventionPlugin implements Plugin<Project> {
     void apply(Project project) {
         // Library-style module, no Boot app
         project.pluginManager.apply 'java-library'
-        project.pluginManager.apply 'io.spring.dependency-management'
+//        project.pluginManager.apply 'io.spring.dependency-management'
 
         project.group = 'com.gnas.starter'
         project.version = '1.0.0-SNAPSHOT'
