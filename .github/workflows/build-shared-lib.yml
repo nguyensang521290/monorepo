@@ -1,0 +1,50 @@
+name: Build Shared Library
+
+on:
+  workflow_call:
+    inputs:
+      library-name:
+        required: true
+        type: string
+      library-path:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build ${{ inputs.library-name }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build and test ${{ inputs.library-name }}
+        run: ./gradlew :${{ inputs.library-path }}:build :${{ inputs.library-path }}:test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ inputs.library-name }}
+          path: ${{ inputs.library-path }}/build/test-results/
+          retention-days: 7
+
+      - name: Upload build artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ inputs.library-name }}
+          path: ${{ inputs.library-path }}/build/libs/*.jar
+          retention-days: 7
+

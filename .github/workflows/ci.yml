@@ -1,0 +1,70 @@
+name: CI - Microservice Build
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      order-service: ${{ steps.filter.outputs.order-service }}
+      shared-lib: ${{ steps.filter.outputs.shared-lib }}
+      build-logic: ${{ steps.filter.outputs.build-logic }}
+      root: ${{ steps.filter.outputs.root }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            order-service:
+              - 'order-service/**'
+              - 'shared-lib/**'
+              - 'build-logic/**'
+              - 'build.gradle'
+              - 'settings.gradle'
+              - 'gradle.properties'
+            shared-lib:
+              - 'shared-lib/**'
+              - 'build-logic/**'
+              - 'build.gradle'
+              - 'settings.gradle'
+            build-logic:
+              - 'build-logic/**'
+              - 'build.gradle'
+              - 'settings.gradle'
+            root:
+              - 'build.gradle'
+              - 'settings.gradle'
+              - 'gradle.properties'
+              - '.github/workflows/**'
+
+  build-order-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.order-service == 'true'
+    uses: ./.github/workflows/build-microservice.yml
+    with:
+      microservice-name: order-service
+      microservice-path: order-service
+
+  build-shared-lib:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.shared-lib == 'true' || needs.detect-changes.outputs.build-logic == 'true'
+    uses: ./.github/workflows/build-shared-lib.yml
+    with:
+      library-name: shared-lib
+      library-path: shared-lib
+
