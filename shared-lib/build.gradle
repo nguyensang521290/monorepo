@@ -1,0 +1,11 @@
+plugins {
+    id 'com.gnas.starter.spring-boot-shared-lib'
+}
+
+dependencies {
+    api 'org.apache.commons:commons-lang3:3.14.0'
+
+    implementation('org.springframework.boot:spring-boot-starter-actuator')
+    implementation('org.springframework.boot:spring-boot-starter-aop')
+    implementation('com.fasterxml.jackson.core:jackson-databind:2.20.0')
+}

@@ -1,0 +1,6 @@
+rootProject.name = 'gnas-starter'
+
+includeBuild('build-logic')
+
+include('shared-lib')
+include('order-service')

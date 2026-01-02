@@ -1,0 +1,110 @@
+//buildscript {
+//	ext {
+//		springBootVersion = '3.5.3'
+//		dependencyManagementVersion = '1.1.7'
+//	}
+//	repositories {
+//		mavenLocal()
+//		mavenCentral()
+//	}
+//	dependencies {
+//		classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+//		classpath "io.spring.gradle:dependency-management-plugin:${dependencyManagementVersion}"
+//	}
+//}
+//
+//apply plugin: 'java'
+//apply plugin: 'org.springframework.boot'
+//apply plugin: 'io.spring.dependency-management'
+//apply plugin: 'maven-publish'
+//
+//def suffix() {
+//	"-LOCAL"
+//}
+//
+//group = 'com.gnas'
+//version = "${versionNumber}${suffix()}"
+//description = 'Gnas Starter'
+//
+//jar {
+//	archiveBaseName = 'gnas-starter-lib'
+//}
+//
+//java {
+//	toolchain {
+//		languageVersion = JavaLanguageVersion.of(17)
+//	}
+//}
+//
+//configurations {
+//	compileOnly {
+//		extendsFrom annotationProcessor
+//	}
+//}
+//
+//repositories {
+//	mavenLocal()
+//	mavenCentral()
+//}
+//
+//dependencies {
+//	implementation platform("org.springframework.boot:spring-boot-dependencies:2.7.15")
+//
+//	implementation 'org.springframework.boot:spring-boot-starter-web'
+//	implementation 'org.springframework.boot:spring-boot-starter-aop'
+//	implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
+//
+//	compileOnly 'org.projectlombok:lombok'
+//	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+//	annotationProcessor 'org.projectlombok:lombok'
+////	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+//	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+//}
+//
+//tasks.named('test') {
+//	useJUnitPlatform()
+//}
+//
+//publishing {
+//	publications {
+//		library(MavenPublication) {
+//			from components.java
+//		}
+//	}
+//	repositories {
+//		mavenLocal()
+//		maven {
+//			url nexus_url
+//			allowInsecureProtocol = true
+//			credentials {
+//				username nexus_username
+//				password nexus_password
+//			}
+//		}
+//	}
+//}
+
+buildscript {
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		// your self-hosted repo for plugins or internal artifacts
+//		maven {
+//			url 'https://repo.my-company.com/maven2'
+//		}
+	}
+	dependencies {
+		// if you still use the Boot plugin in root or somewhere
+		classpath 'org.springframework.boot:spring-boot-gradle-plugin:3.3.4'
+	}
+}
+
+allprojects {
+	repositories {
+		mavenLocal()
+		mavenCentral()
+//		maven {
+//			url 'https://repo.my-company.com/maven2'
+//		}
+	}
+}

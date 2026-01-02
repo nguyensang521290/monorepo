@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: 'postgres:latest'
+    container_name: transactional-outbox-proj
+    environment:
+      - 'POSTGRES_DB=mydb'
+      - 'POSTGRES_PASSWORD=testuser'
+      - 'POSTGRES_USER=testuser'
+    ports:
+      - '5432:5432'
+    volumes:
+      - backup:/var/lib/postgresql/data
+    restart: unless-stopped
+volumes:
+  backup:
