@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: 'postgres:15-alpine'
+    container_name: account-db
+    environment:
+      - POSTGRES_DB=account-db
+      - POSTGRES_USER=user-test
+      - POSTGRES_PASSWORD=password
+    ports:
+      - '5432:5432'
+    volumes:
+      - backup:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user-test -d account-db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  backup:

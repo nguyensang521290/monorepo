@@ -1,0 +1,16 @@
+database:
+  host: localhost
+  port: 5432
+  name: account-db
+  username: user-test
+  password: password
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${database.host}:${database.port}/${database.name}
+    username: ${database.username}
+    password: ${database.password}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
