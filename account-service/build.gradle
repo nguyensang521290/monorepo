@@ -1,5 +1,6 @@
 plugins {
     id 'com.gnas.starter.spring-boot-microservice'
+    id 'com.avast.gradle.docker-compose' version '0.14.2'
 }
 
 dependencies {
@@ -7,9 +8,15 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
-    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.springframework.kafka:spring-kafka' 
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
 
     runtimeOnly 'org.postgresql:postgresql:42.7.2'
+}
 
-//    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+dockerCompose {
+    useComposeFiles = [
+        '/docker/docker-compose.yaml',
+        '/docker/docker-kafka-compose.yaml'
+    ]
 }

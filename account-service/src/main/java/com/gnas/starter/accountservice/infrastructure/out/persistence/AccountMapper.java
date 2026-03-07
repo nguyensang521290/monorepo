@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 public final class AccountMapper {
   public static Account toDomain(AccountJpaEntity e) {
         if (e == null) return null;
-        return Account.reconstitute(e.getId(), e.getCustomerId(), e.getAccountNumber(), e.getCurrency(), e.getStatus(), e.getCreatedAt());
+        return Account.reconstitute(e.getId(), e.getCustomerId(), e.getAccountNumber(), e.getCurrency(), e.getBalance(), e.getStatus(), e.getCreatedAt());
     }
 
     public static AccountJpaEntity toEntity(Account a) {
@@ -19,6 +19,7 @@ public final class AccountMapper {
         entity.setCustomerId(a.getCustomerId());
         entity.setAccountNumber(a.getAccountNumber());
         entity.setCurrency(a.getCurrency());
+        entity.setBalance(a.getBalance());
         entity.setStatus(a.getStatus());
         return entity;
     }

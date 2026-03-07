@@ -3,11 +3,12 @@ package com.gnas.starter.accountservice.application.service;
 import com.gnas.starter.accountservice.application.port.out.AccountEventPublisher;
 import com.gnas.starter.accountservice.application.port.out.AccountRepository;
 import com.gnas.starter.accountservice.domain.Account;
-import com.gnas.starter.accountservice.domain.event.AccountOpenedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -19,21 +20,16 @@ public class AccountService {
 
     @Transactional
     public Account openAccount(String customerId, String currency) {
-        // 1. Create account
         Account newAccount = Account.openAccount(customerId, accountNumberGenerator.generate(), currency);
+        return accountRepository.save(newAccount);
+    }
 
-        // 2. Persist account
-        Account savedAccount = accountRepository.save(newAccount);
-
-        // 3. Publish domain events
-        eventPublisher.publishAccountOpened(new AccountOpenedEvent(
-                savedAccount.getId(),
-                savedAccount.getAccountNumber(),
-                savedAccount.getCustomerId(),
-                savedAccount.getCurrency(),
-                savedAccount.getCreatedAt()
-        ));
-
-        return savedAccount;
+    @Transactional
+    public Account deposit(Long accountId, BigDecimal amount) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found: " + accountId));
+        
+        account.deposit(amount);
+        return accountRepository.save(account);
     }
 }

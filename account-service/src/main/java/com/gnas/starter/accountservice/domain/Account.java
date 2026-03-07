@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,7 @@ public class Account {
     private String customerId;
     private String accountNumber;
     private String currency;
+    private BigDecimal balance;
     private AccountStatus status;
     private LocalDateTime createdAt;
 
@@ -32,20 +34,29 @@ public class Account {
             newAccount.customerId = customerId;
             newAccount.accountNumber = accountNumber;
             newAccount.currency = currency;
+            newAccount.balance = BigDecimal.valueOf(1000);
             newAccount.status = AccountStatus.ACTIVE;
             return newAccount;
         }
     }
 
-    public static Account reconstitute(Long id, String customerId, String accountNumber, String currency, AccountStatus status, LocalDateTime createdAt) {
+    public static Account reconstitute(Long id, String customerId, String accountNumber, String currency, BigDecimal balance, AccountStatus status, LocalDateTime createdAt) {
         Account account = new Account();
         account.setId(id);
         account.customerId = customerId;
         account.accountNumber = accountNumber;
         account.currency = currency;
+        account.balance = balance;
         account.status = status;
         account.createdAt = createdAt;
         return account;
+    }
+
+    public void deposit(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Deposit amount must be positive!");
+        }
+        this.balance = this.balance.add(amount);
     }
 
     public void freeze() {}

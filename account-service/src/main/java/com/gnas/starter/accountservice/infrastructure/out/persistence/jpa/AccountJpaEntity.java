@@ -13,8 +13,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Entity(name = "ACCOUNT")
 @Table(name = "account")
@@ -35,8 +38,12 @@ public class AccountJpaEntity {
     @Column(name = "currency", nullable = false)
     private String currency;
 
+    @Column(name = "balance", nullable = false, precision = 19, scale = 2)
+    private BigDecimal balance;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private AccountStatus status;
 
     @CreationTimestamp
