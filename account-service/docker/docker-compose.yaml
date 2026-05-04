@@ -4,15 +4,15 @@ services:
     container_name: account-db
     environment:
       - POSTGRES_DB=account-db
-      - POSTGRES_USER=user-test
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=testuser
+      - POSTGRES_PASSWORD=testuser
     ports:
       - '5432:5432'
     volumes:
       - backup:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U user-test -d account-db" ]
+      test: [ "CMD-SHELL", "pg_isready -U testuser -d account-db" ]
       interval: 10s
       timeout: 5s
       retries: 5

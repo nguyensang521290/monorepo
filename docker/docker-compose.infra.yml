@@ -1,0 +1,203 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: gnas-postgres
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testuser
+      POSTGRES_MULTIPLE_DATABASES: order-db,payment-db,account-db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gnas-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.2
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - gnas-network
+
+  kafka-1:
+    image: confluentinc/cp-kafka:7.6.2
+    container_name: kafka-1
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-1:29092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+    volumes:
+      - kafka-data-1:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gnas-network
+
+  kafka-2:
+    image: confluentinc/cp-kafka:7.6.2
+    container_name: kafka-2
+    depends_on:
+      - zookeeper
+    ports:
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-2:29092,EXTERNAL://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+    volumes:
+      - kafka-data-2:/var/lib/kafka/data
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server localhost:9093 --list" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gnas-network
+
+  kafka-3:
+    image: confluentinc/cp-kafka:7.6.2
+    container_name: kafka-3
+    depends_on:
+      - zookeeper
+    ports:
+      - "9094:9094"
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9094
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-3:29092,EXTERNAL://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+    volumes:
+      - kafka-data-3:/var/lib/kafka/data
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server localhost:9094 --list" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gnas-network
+
+  kafka-topic-creator:
+    image: confluentinc/cp-kafka:7.6.2
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    volumes:
+      - ./scripts/kafka-topic-creator.sh:/usr/local/bin/kafka-topic-creator.sh
+    entrypoint: [ "/bin/sh", "/usr/local/bin/kafka-topic-creator.sh" ]
+    networks:
+      - gnas-network
+    restart: "no"
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.2
+    container_name: schema-registry
+    hostname: schema-registry
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://kafka-1:29092,PLAINTEXT://kafka-2:29092,PLAINTEXT://kafka-3:29092'
+      SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_METHODS: GET,POST,PUT,OPTIONS,DELETE
+      SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_ORIGIN: '*'
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/subjects"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gnas-network
+
+  schema-registration:
+    image: alpine:latest
+    container_name: schema-registration
+    depends_on:
+      - schema-registry
+    volumes:
+      - ../order-service/src/main/avro:/avro
+      - ./scripts/schema-registration.sh:/usr/local/bin/schema-registration.sh
+    entrypoint: [ "/bin/sh", "/usr/local/bin/schema-registration.sh" ]
+    networks:
+      - gnas-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    container_name: kafka-ui
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+      - schema-registry
+    ports:
+      - "7777:8080"
+    restart: always
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka-1:29092,kafka-2:29092,kafka-3:29092
+      - KAFKA_CLUSTERS_0_SCHEMAREGISTRY=http://schema-registry:8081
+    networks:
+      - gnas-network
+
+  schema-registry-ui:
+    image: landoop/schema-registry-ui:latest
+    hostname: schema-registry-ui
+    container_name: schema-registry-ui
+    ports:
+      - "8000:8000"
+    environment:
+      SCHEMAREGISTRY_URL: "http://schema-registry:8081"
+      PROXY: "true"
+    depends_on:
+      - schema-registry
+    networks:
+      - gnas-network
+
+volumes:
+  postgres_data:
+  kafka-data-1:
+  kafka-data-2:
+  kafka-data-3:
+
+networks:
+  gnas-network:
+    name: gnas-network

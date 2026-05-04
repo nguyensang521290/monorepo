@@ -1,13 +1,14 @@
 server:
   servlet:
     context-path: /account-service
+  port: 8084
 
 database:
-  host: localhost
-  port: 5432
-  name: account-db
-  username: user-test
-  password: password
+  host: ${DB_HOST:localhost}
+  port: ${DB_PORT:5432}
+  name: ${DB_NAME:account-db}
+  username: ${DB_USERNAME:testuser}
+  password: ${DB_PASSWORD:testuser}
 
 spring:
   datasource:
@@ -23,7 +24,7 @@ spring:
       hibernate:
         format_sql: true
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     listener:
       ack-mode: manual_immediate
     producer:
@@ -31,11 +32,17 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
     consumer:
-      group-id: account-service-group
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+      group-id: account-group-id
+      key-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       enable-auto-commit: false
       auto-offset-reset: earliest
+    properties:
+      schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+      auto.register.schemas: false
+      specific.avro.reader: true
+      key.subject.name.strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
+      value.subject.name.strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
 
 logging:
   level:

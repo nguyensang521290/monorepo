@@ -42,7 +42,12 @@ public class AccountJpaRepositoryImpl implements AccountRepository {
 
     @Override
     public void deposit(BigDecimal money, String customerId) {
+        AccountJpaEntity account = repository.findByCustomerId(customerId)
+                .orElseThrow(() -> new RuntimeException("No account found"));
 
+        account.setBalance(account.getBalance().add(money));
+        repository.save(account);
+        log.info("deposit successfully with account number={}, money={}", account.getAccountNumber(), money);
     }
 
     @Override
@@ -51,7 +56,7 @@ public class AccountJpaRepositoryImpl implements AccountRepository {
         AccountJpaEntity account = repository.findByCustomerId(customerId)
                 .orElseThrow(() -> new RuntimeException("No account found"));
 
-        if (account.getBalance().compareTo(money) > 0) {
+        if (account.getBalance().compareTo(money) >= 0) {
             repository.withdraw(money, customerId);
         } else {
             String errorMessage = String.format("Account=%s is not enough balance for performing", account.getAccountNumber());

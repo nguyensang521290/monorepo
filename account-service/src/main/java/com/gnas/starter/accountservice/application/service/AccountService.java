@@ -1,6 +1,5 @@
 package com.gnas.starter.accountservice.application.service;
 
-import com.gnas.starter.accountservice.application.port.out.AccountEventPublisher;
 import com.gnas.starter.accountservice.application.port.out.AccountRepository;
 import com.gnas.starter.accountservice.domain.Account;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,6 @@ import java.math.BigDecimal;
 public class AccountService {
     private final AccountRepository accountRepository;
     private final AccountNumberGenerator accountNumberGenerator;
-    private final AccountEventPublisher eventPublisher;
 
     @Transactional
     public Account openAccount(String customerId, String currency) {

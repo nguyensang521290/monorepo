@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.2
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.2
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"   # host access (use localhost:9092 on mac)
+      - "29092:29092" # internal network listener for containers
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+
+  kafka-topic-creator:
+    image: confluentinc/cp-kafka:7.6.2
+    depends_on:
+      - kafka
+    entrypoint: [ "/bin/sh", "-c" ]
+    command: >
+      '
+      # wait for kafka to be available, then create topic if missing
+      tries=0
+      until kafka-topics --bootstrap-server kafka:29092 --list >/dev/null 2>&1 || [ $$tries -ge 30 ]; do
+        tries=$$((tries+1))
+        sleep 2
+      done
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic order-topic --partitions 1 --replication-factor 1
+      echo "order-topic topic ensured"
+      '
+    networks:
+      - default
+    restart: "no"
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.1
+    container_name: schema-registry
+    hostname: schema-registry
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      # CRITICAL: This must point to your Kafka container's internal network port.
+      # If your Kafka service is named 'kafka' and its internal port is 9092, use 'kafka:9092'
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://kafka:29092'
+
+      # Optional but recommended: Allows you to delete schemas during development
+      SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_METHODS: GET,POST,PUT,OPTIONS,DELETE
+      SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_ORIGIN: '*'
+    depends_on:
+      - kafka # Make sure this matches the exact name of your Kafka service
+
+  schema-registration:
+    image: alpine:latest
+    container_name: schema-registration
+    depends_on:
+      - schema-registry
+    volumes:
+      - ../src/main/avro:/avro
+    entrypoint: [ "/bin/sh", "-c" ]
+    command:
+      - |
+        apk add --no-cache curl jq;
+        echo "Waiting for Schema Registry...";
+        while [ $$(curl -s -o /dev/null -w "%{http_code}" http://schema-registry:8081/subjects) -ne 200 ]; do 
+          sleep 2; 
+        done;
+
+        for file in /avro/*.avsc; do
+          echo "Registering schema from $$file...";
+          # Extract the fully qualified record name (namespace.name) as the subject.
+          # This matches the RecordNameStrategy defined in the application.yaml.
+          SUBJECT=$$(jq -r 'if .namespace then .namespace + "." + .name else .name end' $$file);
+          SCHEMA_CONTENT=$$(jq -c . $$file | jq -R .);
+          
+          echo "Subject: $$SUBJECT";
+          curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+            --data "{\"schema\": $$SCHEMA_CONTENT}" \
+            "http://schema-registry:8081/subjects/$$SUBJECT/versions";
+          echo -e "\n";
+        done;
+
+volumes:
+  kafka-data:
+    driver: local

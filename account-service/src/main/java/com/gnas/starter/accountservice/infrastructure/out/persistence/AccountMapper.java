@@ -16,6 +16,7 @@ public final class AccountMapper {
         if (a == null) return null;
 
         AccountJpaEntity entity = new AccountJpaEntity();
+        entity.setId(a.getId());
         entity.setCustomerId(a.getCustomerId());
         entity.setAccountNumber(a.getAccountNumber());
         entity.setCurrency(a.getCurrency());

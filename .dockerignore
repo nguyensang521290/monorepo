@@ -1,0 +1,10 @@
+**/build/
+**/.gradle/
+**/bin/
+/out/
+.git/
+.idea/
+.vscode/
+**/docker-compose.yaml
+**/Dockerfile*
+node_modules/

@@ -34,7 +34,7 @@ public class Account {
             newAccount.customerId = customerId;
             newAccount.accountNumber = accountNumber;
             newAccount.currency = currency;
-            newAccount.balance = BigDecimal.valueOf(1000);
+            newAccount.balance = BigDecimal.ZERO;
             newAccount.status = AccountStatus.ACTIVE;
             return newAccount;
         }
