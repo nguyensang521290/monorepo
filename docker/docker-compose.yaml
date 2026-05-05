@@ -1,6 +1,7 @@
 include:
   - docker-compose.infra.yml
   - docker-compose.apps.yml
+  - docker-compose.gateway.yml
 
 networks:
   gnas-network:

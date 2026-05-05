@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for Payment Service Development
+# Multi-stage Dockerfile for Identity Service Development
 FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
 
@@ -10,22 +10,22 @@ COPY settings.gradle .
 COPY gradle.properties .
 COPY build-logic build-logic
 
-# Copy shared library (dependency) and payment-service source
+# Copy shared library (dependency) and identity-service source
 COPY shared-lib shared-lib
-COPY payment-service payment-service
+COPY identity-service identity-service
 
-# Build the payment-service
-RUN ./gradlew :payment-service:bootJar -x test
+# Build the identity-service
+RUN ./gradlew :identity-service:bootJar -x test
 
 # Final stage for running the application
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
 # Copy the built jar from the build stage
-COPY --from=build /app/payment-service/build/libs/*.jar app.jar
+COPY --from=build /app/identity-service/build/libs/*.jar app.jar
 
-# Expose the port defined in application.yaml
-EXPOSE 8083
+# Expose the port
+EXPOSE 8085
 
 # Run the application
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

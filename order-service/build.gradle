@@ -22,6 +22,9 @@ dependencies {
     implementation 'org.apache.avro:avro:1.12.1'
     implementation 'io.confluent:kafka-avro-serializer:7.5.1'
     implementation 'org.testng:testng:7.1.0'
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
     runtimeOnly 'org.postgresql:postgresql:42.7.2'
 }
@@ -36,6 +39,10 @@ dockerCompose {
 
 avro {
     stringType = "String"
+}
+
+tasks.withType(com.github.davidmc24.gradle.plugin.avro.GenerateAvroJavaTask).configureEach {
+    source("src/main/avro")
 }
 
 tasks.register('startEnvironment') {

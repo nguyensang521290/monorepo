@@ -1,0 +1,60 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: identity-service
+    url: http://identity-service:8085/identity-service
+    routes:
+      - name: identity-route
+        paths:
+          - /identity-service
+
+  - name: account-service
+    url: http://account-service:8084/account-service
+    routes:
+      - name: account-route
+        paths:
+          - /account-service
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+
+  - name: order-service
+    url: http://order-service:8082/order-service
+    routes:
+      - name: order-route
+        paths:
+          - /order-service
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+
+  - name: payment-service
+    url: http://payment-service:8083/payment-service
+    routes:
+      - name: payment-route
+        paths:
+          - /payment-service
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+
+consumers:
+  - username: identity-consumer
+    jwt_secrets:
+      - key: gnas-issuer
+        secret: gnas-starter-secret-key-1234567890-abcdefghij
+
+plugins:
+  - name: rate-limiting
+    config:
+      second: 5
+      hour: 10000
+      policy: local
+

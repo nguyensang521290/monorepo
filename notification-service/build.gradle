@@ -1,0 +1,34 @@
+plugins {
+    id 'com.gnas.starter.spring-boot-microservice'
+    id "com.github.davidmc24.gradle.plugin.avro" version "1.9.1"
+}
+
+repositories {
+    maven {
+        url "https://packages.confluent.io/maven/"
+    }
+}
+
+dependencies {
+    implementation project(':shared-lib')
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.apache.avro:avro:1.11.3'
+    implementation 'io.confluent:kafka-avro-serializer:7.5.1'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+}
+
+avro {
+    stringType = "String"
+}
+
+tasks.withType(com.github.davidmc24.gradle.plugin.avro.GenerateAvroJavaTask).configureEach {
+    source("../infrastructure/kafka/schemas")
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs += "build/generated-main-avro-java"
+        }
+    }
+}

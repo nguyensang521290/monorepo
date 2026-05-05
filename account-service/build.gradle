@@ -27,6 +27,10 @@ avro {
     stringType = "String"
 }
 
+tasks.withType(com.github.davidmc24.gradle.plugin.avro.GenerateAvroJavaTask).configureEach {
+    source("../infrastructure/kafka/schemas")
+}
+
 sourceSets {
     main {
         java {

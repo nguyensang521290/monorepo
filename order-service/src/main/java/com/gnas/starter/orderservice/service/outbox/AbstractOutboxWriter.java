@@ -4,9 +4,10 @@ import com.gnas.starter.orderservice.domain.OutboxEvent;
 import com.gnas.starter.orderservice.repository.OutboxEventJpaRepository;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.RequiredArgsConstructor;
+import org.apache.avro.specific.SpecificRecord;
 
 @RequiredArgsConstructor
-public abstract class AbstractOutboxWriter<Input, Key, Payload> implements OutboxWriter<Input> {
+public abstract class AbstractOutboxWriter<Input> implements OutboxWriter<Input> {
     private final OutboxEventJpaRepository outboxEventJpaRepository;
     private final KafkaAvroSerializer keySerializer;
     private final KafkaAvroSerializer valueSerializer;
@@ -14,8 +15,8 @@ public abstract class AbstractOutboxWriter<Input, Key, Payload> implements Outbo
     @Override
     public void write(Input input) {
         String eventType = getType().getValue();
-        Key builtKey = buildKey(input);
-        Payload builtPayload = buildPayload(input);
+        SpecificRecord builtKey = getMapper().toKey(input);
+        SpecificRecord builtPayload = getMapper().toPayload(input);
 
         OutboxEvent orderedEvent = OutboxEvent.builder()
                 .eventType(eventType)
@@ -26,7 +27,5 @@ public abstract class AbstractOutboxWriter<Input, Key, Payload> implements Outbo
         outboxEventJpaRepository.save(orderedEvent);
     }
 
-    protected abstract Key buildKey(Input input);
-
-    protected abstract Payload buildPayload(Input input);
+    protected abstract OutboxMapper<Input> getMapper();
 }

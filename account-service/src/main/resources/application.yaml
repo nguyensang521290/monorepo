@@ -29,8 +29,8 @@ spring:
       ack-mode: manual_immediate
     producer:
       acks: all
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+      key-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
     consumer:
       group-id: account-group-id
       key-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
@@ -39,10 +39,10 @@ spring:
       auto-offset-reset: earliest
     properties:
       schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
-      auto.register.schemas: false
+      auto.register.schemas: true
       specific.avro.reader: true
-      key.subject.name.strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
-      value.subject.name.strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
+      key.subject.name.strategy: io.confluent.kafka.serializers.subject.TopicNameStrategy
+      value.subject.name.strategy: io.confluent.kafka.serializers.subject.TopicNameStrategy
 
 logging:
   level:
