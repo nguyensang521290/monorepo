@@ -3,14 +3,30 @@ plugins {
     id "com.github.davidmc24.gradle.plugin.avro" version "1.9.1"
 }
 
+repositories {
+    maven {
+        url "https://packages.confluent.io/maven/"
+    }
+    maven {
+        url nexus_url
+        allowInsecureProtocol = true
+        credentials {
+            username = nexus_username
+            password = nexus_password
+        }
+    }
+}
+
 dependencies {
-    implementation project(':shared-lib')
+    implementation "com.gnas.starter:shared-lib:${versionNumber}"
+    implementation "com.gnas.starter:outbox-lib:${versionNumber}"
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
-    
+    implementation 'org.springframework.kafka:spring-kafka'
+
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
@@ -22,3 +38,16 @@ dependencies {
 avro {
     stringType = "String"
 }
+
+tasks.withType(com.github.davidmc24.gradle.plugin.avro.GenerateAvroJavaTask).configureEach {
+    source("src/main/avro")
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs += "build/generated-main-avro-java"
+        }
+    }
+}
+

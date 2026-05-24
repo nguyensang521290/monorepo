@@ -1,16 +1,17 @@
 package com.gnas.starter.accountservice.application.service;
 
-import com.gnas.account.AccountOpenedEvent;
 import com.gnas.starter.accountservice.application.port.out.AccountRepository;
 import com.gnas.starter.accountservice.domain.Account;
-import com.gnas.starter.accountservice.infrastructure.out.event.kafka.KafkaEventPublisher;
+import com.gnas.starter.accountservice.domain.AccountDepositData;
+import com.gnas.starter.accountservice.infrastructure.out.event.outbox.AccountDepositedOutboxWriter;
+import com.gnas.starter.accountservice.infrastructure.out.event.outbox.AccountOpenedOutboxWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -18,28 +19,24 @@ import java.time.format.DateTimeFormatter;
 public class AccountService {
     private final AccountRepository accountRepository;
     private final AccountNumberGenerator accountNumberGenerator;
-    private final KafkaEventPublisher eventPublisher;
+    private final AccountOpenedOutboxWriter outboxWriter;
+    private final AccountDepositedOutboxWriter depositOutboxWriter;
 
     @Transactional
     public Account openAccount(String customerId, String currency) {
-        Account newAccount = Account.openAccount(customerId, accountNumberGenerator.generate(), currency);
-        Account savedAccount = accountRepository.save(newAccount);
-
-        publishAccountOpenedEvent(savedAccount);
-        
-        return savedAccount;
+        return accountRepository.findByCustomerId(customerId)
+                .orElseGet(() -> {
+                    Account newAccount = Account.openAccount(customerId, accountNumberGenerator.generate(), currency);
+                    Account savedAccount = accountRepository.save(newAccount);
+                    outboxWriter.write(savedAccount);
+                    return savedAccount;
+                });
     }
 
-    private void publishAccountOpenedEvent(Account account) {
-        AccountOpenedEvent event = AccountOpenedEvent.newBuilder()
-                .setAccountId(account.getId())
-                .setAccountNumber(account.getAccountNumber())
-                .setCustomerId(account.getCustomerId())
-                .setCurrency(account.getCurrency())
-                .setCreatedAt(account.getCreatedAt().format(DateTimeFormatter.ISO_DATE_TIME))
-                .build();
-        
-        eventPublisher.publish(event);
+    @Transactional(readOnly = true)
+    public Account findByCustomerId(String customerId) {
+        return accountRepository.findByCustomerId(customerId)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found for customerId: " + customerId));
     }
 
     @Transactional
@@ -48,6 +45,18 @@ public class AccountService {
                 .orElseThrow(() -> new IllegalArgumentException("Account not found: " + accountId));
         
         account.deposit(amount);
-        return accountRepository.save(account);
+        Account savedAccount = accountRepository.save(account);
+        
+        depositOutboxWriter.write(new AccountDepositData(savedAccount, amount, LocalDateTime.now()));
+        
+        return savedAccount;
+    }
+
+    @Transactional
+    public void closeAccount(Long accountId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found: " + accountId));
+        account.close();
+        accountRepository.save(account);
     }
 }

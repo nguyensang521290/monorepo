@@ -18,9 +18,5 @@ gradlePlugin {
             id = 'com.gnas.starter.spring-boot-microservice'
             implementationClass = 'com.gnas.starter.SpringBootMicroserviceConventionPlugin'
         }
-        springBootSharedLibrary {
-            id = 'com.gnas.starter.spring-boot-shared-lib'
-            implementationClass = 'com.gnas.starter.SpringBootSharedLibraryConventionPlugin'
-        }
     }
 }

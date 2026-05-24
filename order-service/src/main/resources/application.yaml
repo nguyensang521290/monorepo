@@ -29,21 +29,25 @@ spring:
       ack-mode: manual_immediate
     properties:
       schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+      auto.register.schemas: false
+      key.subject.name.strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
+      value.subject.name.strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
     producer:
       acks: all
       key-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
       value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
-      properties:
-        schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
-        auto.register.schemas: false
-        key.subject.name.strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
-        value.subject.name.strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
     consumer:
       group-id: order-service-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
       enable-auto-commit: false
       auto-offset-reset: earliest
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
 
 logging:
   level:
@@ -53,6 +57,6 @@ logging:
     com:
       gnas:
         starter:
-          orderservice:
+          outbox:
             service:
               OutboxPublisher: INFO

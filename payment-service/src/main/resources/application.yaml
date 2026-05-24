@@ -49,3 +49,15 @@ logging:
     org:
       hibernate:
         SQL: DEBUG
+    com:
+      gnas:
+        starter:
+          outbox:
+            service:
+              OutboxPublisher: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

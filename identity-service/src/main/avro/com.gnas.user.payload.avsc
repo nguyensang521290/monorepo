@@ -1,0 +1,25 @@
+{
+  "namespace": "com.gnas.user",
+  "type": "record",
+  "name": "UserRegisteredEvent",
+  "fields": [
+    {
+      "name": "userId",
+      "type": "long"
+    },
+    {
+      "name": "username",
+      "type": {
+        "type": "string",
+        "avro.java.string": "String"
+      }
+    },
+    {
+      "name": "email",
+      "type": {
+        "type": "string",
+        "avro.java.string": "String"
+      }
+    }
+  ]
+}

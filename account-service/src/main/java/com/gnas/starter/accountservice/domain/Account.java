@@ -63,7 +63,9 @@ public class Account {
 
     public void unfreeze() {}
 
-    public void close() {}
+    public void close() {
+        this.status = AccountStatus.CLOSED;
+    }
 
     // Business rule validation
     private static boolean isValidCurrency(String currency) {

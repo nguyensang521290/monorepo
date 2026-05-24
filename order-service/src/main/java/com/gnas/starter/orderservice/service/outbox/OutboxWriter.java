@@ -1,7 +1,6 @@
 package com.gnas.starter.orderservice.service.outbox;
 
 public interface OutboxWriter<Input> {
-    WriterType getType();
-
+    String getType();
     void write(Input input);
 }

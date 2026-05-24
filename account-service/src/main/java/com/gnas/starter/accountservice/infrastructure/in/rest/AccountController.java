@@ -24,9 +24,27 @@ public class AccountController {
         return ResponseEntity.ok(resp);
     }
 
+    @GetMapping("/v1/accounts/customer/{customerId}")
+    public ResponseEntity<OpenAccountResponse> getAccountByCustomerId(@PathVariable String customerId) {
+        var account = accountService.findByCustomerId(customerId);
+        return ResponseEntity.ok(AccountMapper.toResponse(account));
+    }
+
+    @PostMapping("/v1/accounts/{id}/deposit")
+    public ResponseEntity<BalanceUpdateResponse> deposit(@PathVariable Long id, @Valid @RequestBody DepositRequest req) {
+        var account = accountService.deposit(id, req.amount());
+        return ResponseEntity.ok(new BalanceUpdateResponse(account.getId(), account.getBalance()));
+    }
+
     @PatchMapping("/v1/accounts/{id}/balance")
     public ResponseEntity<BalanceUpdateResponse> updateBalance(@PathVariable Long id, @RequestParam BigDecimal amount) {
         var account = accountService.deposit(id, amount);
         return ResponseEntity.ok(new BalanceUpdateResponse(account.getId(), account.getBalance()));
+    }
+
+    @DeleteMapping("/v1/accounts/{id}")
+    public ResponseEntity<Void> closeAccount(@PathVariable Long id) {
+        accountService.closeAccount(id);
+        return ResponseEntity.noContent().build();
     }
 }

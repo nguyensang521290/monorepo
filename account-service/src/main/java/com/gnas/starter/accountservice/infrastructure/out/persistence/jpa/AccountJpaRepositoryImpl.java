@@ -36,8 +36,18 @@ public class AccountJpaRepositoryImpl implements AccountRepository {
     }
 
     @Override
+    public Optional<Account> findByCustomerId(String customerId) {
+        return repository.findByCustomerId(customerId).map(AccountMapper::toDomain);
+    }
+
+    @Override
     public boolean existsByAccountNumber(String accountNumber) {
         return repository.existsByAccountNumber(accountNumber);
+    }
+
+    @Override
+    public boolean existsByCustomerId(String customerId) {
+        return repository.existsByCustomerId(customerId);
     }
 
     @Override

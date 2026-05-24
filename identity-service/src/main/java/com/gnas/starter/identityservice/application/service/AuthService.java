@@ -1,5 +1,6 @@
 package com.gnas.starter.identityservice.application.service;
 
+import com.gnas.starter.identityservice.domain.Role;
 import com.gnas.starter.identityservice.infrastructure.out.persistence.jpa.RefreshTokenJpaEntity;
 import com.gnas.starter.identityservice.infrastructure.out.persistence.jpa.SpringDataRefreshTokenRepository;
 import com.gnas.starter.identityservice.infrastructure.out.persistence.jpa.SpringDataUserRepository;
@@ -9,10 +10,12 @@ import com.gnas.starter.identityservice.infrastructure.in.rest.AuthRequest;
 import com.gnas.starter.identityservice.infrastructure.in.rest.AuthResponse;
 import com.gnas.starter.identityservice.infrastructure.in.rest.RegisterRequest;
 import com.gnas.starter.identityservice.infrastructure.in.rest.RefreshTokenRequest;
+import com.gnas.starter.identityservice.infrastructure.out.event.outbox.UserRegisteredOutboxWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +32,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final UserRegisteredOutboxWriter outboxWriter;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -43,10 +47,15 @@ public class AuthService {
         user.setUsername(request.username());
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
+        if (request.role() != null) {
+            user.setRole(request.role());
+        }
         
-        userRepository.save(user);
+        var savedUser = userRepository.save(user);
+
+        outboxWriter.write(savedUser);
         
-        return generateAuthResponse(user.getUsername(), user.getPassword());
+        return generateAuthResponse(savedUser);
     }
 
     @Transactional
@@ -60,7 +69,7 @@ public class AuthService {
         var user = userRepository.findByUsername(request.username())
                 .orElseThrow();
         
-        return generateAuthResponse(user.getUsername(), user.getPassword());
+        return generateAuthResponse(user);
     }
 
     @Transactional
@@ -78,14 +87,24 @@ public class AuthService {
 
         // Rotate refresh token
         refreshTokenRepository.delete(refreshToken);
-        return generateAuthResponse(user.getUsername(), user.getPassword());
+        return generateAuthResponse(user);
     }
 
-    private AuthResponse generateAuthResponse(String username, String password) {
-        var userDetails = new User(username, password, new ArrayList<>());
+    private AuthResponse generateAuthResponse(UserJpaEntity user) {
+        UserDetails userDetails = userDetailsService().loadUserByUsername(user.getUsername());
         var accessToken = jwtService.generateToken(userDetails);
-        var refreshToken = createRefreshToken(username);
-        return new AuthResponse(accessToken, refreshToken.getToken());
+        var refreshToken = createRefreshToken(user.getUsername());
+        return new AuthResponse(user.getId(), accessToken, refreshToken.getToken());
+    }
+
+    private UserDetailsService userDetailsService() {
+        return username -> userRepository.findByUsername(username)
+                .map(user -> new org.springframework.security.core.userdetails.User(
+                        user.getUsername(),
+                        user.getPassword(),
+                        java.util.Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                ))
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("User not found"));
     }
 
     private RefreshTokenJpaEntity createRefreshToken(String username) {

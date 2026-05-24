@@ -18,6 +18,8 @@ public interface SpringDataAccountRepository extends JpaRepository<AccountJpaEnt
 
     boolean existsByAccountNumber(String accountNumber);
 
+    boolean existsByCustomerId(String customerId);
+
     @Modifying
     @Query("""
         UPDATE ACCOUNT a

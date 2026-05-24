@@ -7,10 +7,18 @@ repositories {
     maven {
         url "https://packages.confluent.io/maven/"
     }
+    maven {
+        url nexus_url
+        allowInsecureProtocol = true
+        credentials {
+            username = nexus_username
+            password = nexus_password
+        }
+    }
 }
 
 dependencies {
-    implementation project(':shared-lib')
+    implementation "com.gnas.starter:shared-lib:${versionNumber}"
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.apache.avro:avro:1.11.3'
     implementation 'io.confluent:kafka-avro-serializer:7.5.1'
@@ -22,7 +30,7 @@ avro {
 }
 
 tasks.withType(com.github.davidmc24.gradle.plugin.avro.GenerateAvroJavaTask).configureEach {
-    source("../infrastructure/kafka/schemas")
+    source("src/main/avro")
 }
 
 sourceSets {

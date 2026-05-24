@@ -15,11 +15,31 @@ services:
       - name: account-route
         paths:
           - /account-service
-        plugins:
-          - name: jwt
-            config:
-              claims_to_verify:
-                - exp
+#        plugins:
+#          - name: pre-function
+#            config:
+#              access:
+#                - |
+#                  local http = require "resty.http"
+#                  local client = http.new()
+#                  local auth_header = kong.request.get_header("Authorization")
+#
+#                  local res, err = client:request_uri("http://identity-service:8085/identity-service/v1/auth/authorize", {
+#                      method = "POST",
+#                      body = '{"method":"' .. kong.request.get_method() .. '", "path":"' .. kong.request.get_path() .. '", "token":"' .. (auth_header or "") .. '"}',
+#                      headers = {
+#                          ["Content-Type"] = "application/json",
+#                      }
+#                  })
+#
+#                  if not res then
+#                      kong.log.err("Failed to call identity-service: ", err)
+#                      return kong.response.exit(500, { message = "Auth check failed" })
+#                  end
+#
+#                  if res.status ~= 200 then
+#                      return kong.response.exit(res.status, { message = "Unauthorized by Identity Service" })
+#                  end
 
   - name: order-service
     url: http://order-service:8082/order-service
@@ -27,11 +47,11 @@ services:
       - name: order-route
         paths:
           - /order-service
-        plugins:
-          - name: jwt
-            config:
-              claims_to_verify:
-                - exp
+#        plugins:
+#          - name: jwt
+#            config:
+#              claims_to_verify:
+#                - exp
 
   - name: payment-service
     url: http://payment-service:8083/payment-service
@@ -39,17 +59,17 @@ services:
       - name: payment-route
         paths:
           - /payment-service
-        plugins:
-          - name: jwt
-            config:
-              claims_to_verify:
-                - exp
+#        plugins:
+#          - name: jwt
+#            config:
+#              claims_to_verify:
+#                - exp
 
-consumers:
-  - username: identity-consumer
-    jwt_secrets:
-      - key: gnas-issuer
-        secret: gnas-starter-secret-key-1234567890-abcdefghij
+#consumers:
+#  - username: identity-consumer
+#    jwt_secrets:
+#      - key: gnas-issuer
+#        secret: gnas-starter-secret-key-1234567890-abcdefghij
 
 plugins:
   - name: rate-limiting
@@ -57,4 +77,3 @@ plugins:
       second: 5
       hour: 10000
       policy: local
-

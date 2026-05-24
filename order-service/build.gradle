@@ -8,19 +8,24 @@ repositories {
     maven {
         url "https://packages.confluent.io/maven/"
     }
+    maven {
+        url nexus_url
+        allowInsecureProtocol = true
+        credentials {
+            username = nexus_username
+            password = nexus_password
+        }
+    }
 }
 
 dependencies {
-    implementation project(':shared-lib')
+    implementation "com.gnas.starter:shared-lib:1.0.0"
+    implementation "com.gnas.starter:outbox-lib:1.0.1"
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
     implementation 'org.springframework.kafka:spring-kafka' 
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'net.javacrumbs.shedlock:shedlock-spring:5.13.0'
-    implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:5.13.0'
-    implementation 'org.apache.avro:avro:1.12.1'
-    implementation 'io.confluent:kafka-avro-serializer:7.5.1'
     implementation 'org.testng:testng:7.1.0'
     implementation 'org.mapstruct:mapstruct:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'

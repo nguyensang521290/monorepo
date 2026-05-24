@@ -5,6 +5,7 @@ includeBuild('build-logic')
 
 // Common services
 include('shared-lib')
+include('outbox-lib')
 
 // Micro services
 include('account-service')

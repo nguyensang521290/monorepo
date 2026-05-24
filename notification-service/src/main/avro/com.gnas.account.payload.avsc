@@ -1,0 +1,27 @@
+{
+  "type": "record",
+  "name": "AccountOpenedEvent",
+  "namespace": "com.gnas.account",
+  "fields": [
+    {
+      "name": "accountId",
+      "type": "long"
+    },
+    {
+      "name": "accountNumber",
+      "type": "string"
+    },
+    {
+      "name": "customerId",
+      "type": "string"
+    },
+    {
+      "name": "currency",
+      "type": "string"
+    },
+    {
+      "name": "createdAt",
+      "type": "string"
+    }
+  ]
+}

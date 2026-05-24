@@ -7,17 +7,16 @@ while [ $(curl -s -o /dev/null -w "%{http_code}" http://schema-registry:8081/sub
   sleep 2; 
 done;
 
-for file in /avro/*.avsc; do
+# Find all .avsc files recursively in /avro
+for file in $(find /avro -name "*.avsc"); do
   echo "Registering schema from $file...";
   # Extract the fully qualified record name (namespace.name) as the subject.
-  # This matches the RecordNameStrategy defined in the application.yaml.
   SUBJECT=$(jq -r 'if .namespace then .namespace + "." + .name else .name end' "$file");
   SCHEMA_CONTENT=$(jq -c . "$file" | jq -R .);
 
   echo "Subject: $SUBJECT";
   
   # Delete the subject first to ensure we start clean in development
-  # (Optional: remove this line if you want to test compatibility instead of overwriting)
   curl -X DELETE "http://schema-registry:8081/subjects/$SUBJECT" > /dev/null 2>&1;
 
   curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \

@@ -12,6 +12,23 @@ class SpringBootMicroserviceConventionPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
+        // Repositories for all modules
+        project.repositories {
+            mavenLocal()
+            mavenCentral()
+            def nexusUrl = System.getenv('NEXUS_URL') ?: project.findProperty('nexus_url')
+            if (nexusUrl) {
+                maven {
+                    url nexusUrl
+                    allowInsecureProtocol = true
+                    credentials {
+                        username = System.getenv('NEXUS_USERNAME') ?: project.findProperty('nexus_username')
+                        password = System.getenv('NEXUS_PASSWORD') ?: project.findProperty('nexus_password')
+                    }
+                }
+            }
+        }
+
         // Apply common plugins
         project.pluginManager.apply 'java'
         project.pluginManager.apply 'org.springframework.boot'
@@ -19,19 +36,13 @@ class SpringBootMicroserviceConventionPlugin implements Plugin<Project> {
 
         // Common coordinates
         project.group = 'com.gnas.starter'
-        project.version = '1.0.0-SNAPSHOT'
+        project.version = project.findProperty('versionNumber') ?: '1.0.0-SNAPSHOT'
 
         // Java version, encoding, etc.
         project.tasks.withType(JavaCompile).configureEach { JavaCompile task ->
             task.sourceCompatibility = JavaVersion.VERSION_17.toString()
             task.targetCompatibility = JavaVersion.VERSION_17.toString()
             task.options.encoding = 'UTF-8'
-        }
-
-        // Repositories for all modules
-        project.repositories {
-            mavenLocal()
-            mavenCentral()
         }
 
         // Common dependencies

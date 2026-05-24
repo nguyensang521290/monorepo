@@ -1,0 +1,59 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = 'com.gnas.starter'
+version = project.findProperty('versionNumber') ?: '1.0.0-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url "https://packages.confluent.io/maven/"
+    }
+}
+
+dependencies {
+    api platform("org.springframework.boot:spring-boot-dependencies:3.3.4")
+    api 'org.springframework.boot:spring-boot-starter-data-jpa'
+    api 'org.springframework.kafka:spring-kafka'
+    api 'net.javacrumbs.shedlock:shedlock-spring:5.13.0'
+    api 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:5.13.0'
+    api 'io.confluent:kafka-avro-serializer:7.5.1'
+    api 'org.apache.avro:avro:1.12.1'
+
+    implementation project(':shared-lib')
+
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'outbox-lib'
+        }
+    }
+    repositories {
+        def nexusUrl = project.findProperty('nexus_url')
+        if (nexusUrl) {
+            maven {
+                name = 'nexus'
+                url = nexusUrl
+                allowInsecureProtocol = true
+                credentials {
+                    username = project.findProperty('nexus_username')
+                    password = project.findProperty('nexus_password')
+                }
+            }
+        }
+    }
+}

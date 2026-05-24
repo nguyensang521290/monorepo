@@ -45,7 +45,8 @@ services:
         sleep 2
       done
       kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic account-opened --partitions 1 --replication-factor 1
-      echo "account-opened topic ensured"
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic user-registered-topic --partitions 1 --replication-factor 1
+      echo "topics ensured"
       '
     networks:
       - default

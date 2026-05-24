@@ -1,0 +1,23 @@
+{
+  "type": "record",
+  "name": "AccountDepositedEvent",
+  "namespace": "com.gnas.account",
+  "fields": [
+    {
+      "name": "accountId",
+      "type": "long"
+    },
+    {
+      "name": "amount",
+      "type": "string"
+    },
+    {
+      "name": "newBalance",
+      "type": "string"
+    },
+    {
+      "name": "depositedAt",
+      "type": "string"
+    }
+  ]
+}

@@ -8,10 +8,19 @@ repositories {
     maven {
         url "https://packages.confluent.io/maven/"
     }
+    maven {
+        url nexus_url
+        allowInsecureProtocol = true
+        credentials {
+            username = nexus_username
+            password = nexus_password
+        }
+    }
 }
 
 dependencies {
-    implementation project(':shared-lib')
+    implementation "com.gnas.starter:shared-lib:${versionNumber}"
+    implementation "com.gnas.starter:outbox-lib:1.0.1"
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
